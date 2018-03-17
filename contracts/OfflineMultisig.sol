@@ -1,17 +1,20 @@
+/* Copyright (c) 2018 adria@codecontext.io / MIT LICENSE */
+
 pragma solidity ^0.4.18;
 
 contract OfflineMultisig {
-
-    event Log(string s);
+  event Log(string s);
 
     bytes constant WEB3_SIGNATURE_PREFIX = "\x19Ethereum Signed Message:\n32";
+
+    bytes32 internal txidcontext;
 
     address[][] public epochs;
 
     struct Transaction {
         uint count;
-        bool executed;
         mapping (address=>bool) approved;
+        bool executed;
     }
 
     struct Signature {
@@ -101,19 +104,23 @@ contract OfflineMultisig {
 
         require(verifyMultiSignature(_epoch,prefixedHash,_sigs));
         require(!txns[_txid].executed);
+        
+        txidcontext = _txid;
         require(this.call(_data));
-
+        txidcontext = 0x0;
+        
         txns[_txid].executed = true;
     }
 
     // child chain execution
-    function partialExecuteOff(uint256 _epoch, bytes32 _txid, bytes _data, bytes32[] _sig) public {
+    function partialExecuteOff(bytes32 _txid, bytes _data, bytes32[] _sig) public {
 
         if (txns[_txid].executed) {
             return;
         }
 
-        bytes32 hash = keccak256(_epoch,_txid,_data);
+        uint epoch = epochs.length - 1;
+        bytes32 hash = keccak256(epoch,_txid,_data);
         bytes32 prefixedHash = keccak256(WEB3_SIGNATURE_PREFIX, hash);
 
         uint8 v = uint8(uint256(_sig[0]));
@@ -124,10 +131,10 @@ contract OfflineMultisig {
 
         if (txnsigs[_txid].data.length>0) {
             assert(keccak256(txnsigs[_txid].data)==keccak256(_data));
-            assert(txnsigs[_txid].epoch==_epoch);
+            assert(txnsigs[_txid].epoch==epoch);
         } else {
             txnsigs[_txid].data = _data;
-            txnsigs[_txid].epoch = _epoch;
+            txnsigs[_txid].epoch = epoch;
         }
 
         txnsigs[_txid].sigs[signer].length = 3;
@@ -135,18 +142,20 @@ contract OfflineMultisig {
         txnsigs[_txid].sigs[signer][1] = _sig[1];
         txnsigs[_txid].sigs[signer][2] = _sig[2];
 
-        partialExecute(_epoch,_txid,_data,signer);
+        partialExecute(_txid,_data,signer);
     }    
 
-    function getSignatures(uint256 _epoch, bytes32 _txid) public constant returns(bytes,bytes32[]) {
+    function getSignatures(bytes32 _txid) public constant returns(uint256 epoch, bytes data, bytes32[] sigs) {
 
         uint i;
         address signer;
         uint count = 0;
 
-        for (i = 0;i<epochs[_epoch].length;i++) {
-            signer = epochs[_epoch][i];
-            if (txnsigs[_txid].sigs[signer].length > 0) {
+        Signature storage signature = txnsigs[_txid];
+
+        for (i = 0;i<epochs[signature.epoch].length;i++) {
+            signer = epochs[signature.epoch][i];
+            if (signature.sigs[signer].length > 0) {
                 count++;
             }
         }
@@ -154,8 +163,8 @@ contract OfflineMultisig {
         bytes32[] memory signatures = new bytes32[](3*count);
 
         count = 0;
-        for (i = 0;i<epochs[_epoch].length;i++) {
-            signer = epochs[_epoch][i];
+        for (i = 0;i<epochs[signature.epoch].length;i++) {
+            signer = epochs[signature.epoch][i];
             if (txnsigs[_txid].sigs[signer].length > 0) {
                 signatures[3*count] = txnsigs[_txid].sigs[signer][0];
                 signatures[3*count+1] = txnsigs[_txid].sigs[signer][1];
@@ -164,21 +173,21 @@ contract OfflineMultisig {
             }
         }
 
-        return (txnsigs[_txid].data,signatures);
+        return (txnsigs[_txid].epoch, txnsigs[_txid].data,signatures);
     }
  
     // child chain execution
-    function partialExecuteOn(uint256 _epoch, bytes32 _txid, bytes _data) public {  
+    function partialExecuteOn(bytes32 _txid, bytes _data) public {  
         if (txns[_txid].executed) {
             // we are not going to fail here because last PoA senders will 
             return;
         }
-        partialExecute(_epoch,_txid,_data,msg.sender);   
+        partialExecute(_txid,_data,msg.sender);   
     }    
 
     // child chain execution
-    function partialExecute(uint256 _epoch, bytes32 _txid, bytes _data, address _signer) private {
-
+    function partialExecute(bytes32 _txid, bytes _data, address _signer) private {
+        
         require (isSigner(_signer));
         require (!txns[_txid].approved[_signer]);
 
@@ -187,12 +196,14 @@ contract OfflineMultisig {
 
         address[] storage signers = epochs[epochs.length-1];
         bool quorum = txns[_txid].count >= (2 * signers.length) / 3;
-
         if (quorum) {
+            txidcontext = _txid;
             require(this.call(_data));
+            txidcontext = 0x0;
+
             txns[_txid].executed = true;
         }
-        
+    
     }
 
     /* ---- multisig functions --------------------------------------- */

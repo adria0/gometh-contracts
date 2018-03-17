@@ -1,3 +1,5 @@
+/* Copyright (c) 2018 adria@codecontext.io / MIT LICENSE */
+
 pragma solidity ^0.4.17;
 
 contract Migrations {

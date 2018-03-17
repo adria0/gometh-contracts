@@ -1,22 +1,24 @@
+/* Copyright (c) 2018 adria@codecontext.io / MIT LICENSE */
+
 pragma solidity ^0.4.18;
 
 import "./OfflineMultisig.sol";
 import "./WETH.sol";
 
-contract GometChild is OfflineMultisig {
+contract GomethSide is OfflineMultisig {
 
     event LogBurn(uint256 epoch, address from, uint value);
-    event LogBurnMultisigned(address from, uint value);
-    event LogMintMultisigned(address to, uint value);
-    event LogStateChangeMultisigned(uint256 blockNo, bytes32 rootState);
+    event LogBurnMultisigned(bytes32 txid, address from, uint value);
+    event LogMintMultisigned(bytes32 txid, address to, uint value);
+    event LogStateChangeMultisigned(bytes32 txid, uint256 blockNo, bytes32 rootState);
 
     WETH public weth;
 
-    function GometChild(address[] _signers) public 
+    function GomethSide(address[] _signers) public 
     OfflineMultisig(_signers) {
     }
 
-    function init(address _weth) {
+    function init(address _weth) public {
       weth = WETH(_weth);
     }
 
@@ -41,16 +43,17 @@ contract GometChild is OfflineMultisig {
     /* ---- multisig functions --------------------------------------- */
 
     function _mintmultisigned(address _to, uint _amount) public {
+
        require(msg.sender == address(this));
 
        weth.mint(_to,_amount);
 
        // send a litte of ether to call toLocalEther
-       if (_to.balance < 0.01 ether ) {
-         _to.transfer(0.01 ether - _to.balance);
-       }
+       // if (_to.balance < 0.01 ether ) {
+       //  _to.transfer(0.01 ether - _to.balance);
+       // }
 
-       LogMintMultisigned(_to,_amount);
+       LogMintMultisigned(txidcontext,_to,_amount);
     }
 
     // this function is called via partialExecuteOff, this means that all
@@ -59,12 +62,12 @@ contract GometChild is OfflineMultisig {
 
     function _statechangemultisigned(uint256 blockNo, bytes32 rootState) public {
        require(msg.sender == address(this));      
-       LogStateChangeMultisigned(blockNo, rootState);
+       LogStateChangeMultisigned(txidcontext, blockNo, rootState);
     }
 
     function _burnmultisigned(address from, uint value) public {
        require(msg.sender == address(this));      
-       LogBurnMultisigned(from, value);
+       LogBurnMultisigned(txidcontext, from, value);
     }
 
 }

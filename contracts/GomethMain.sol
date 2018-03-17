@@ -1,19 +1,17 @@
+/* Copyright (c) 2018 adria@codecontext.io / MIT LICENSE */
+
 pragma solidity ^0.4.18;
 
 import "./OfflineMultisig.sol";
 
-contract GometParent is OfflineMultisig {
+contract GomethMain is OfflineMultisig {
 
     uint constant DUST = 0;
-
-    // A good question here:
-    // - events means what happened? <- better
-    // - events means what needs to be done?
 
     event LogLock(uint256 epoch,  address from, uint256 value);
     event LogUnlock(address to, uint256 value);
 
-    function GometParent(address[] _signers) 
+    function GomethMain(address[] _signers) 
     OfflineMultisig(_signers) public {
     }
     

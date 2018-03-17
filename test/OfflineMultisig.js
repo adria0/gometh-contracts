@@ -47,8 +47,8 @@ contract("OfflineMultisig", (accounts) => {
 
         let data = multisig._changeSigners.request(epoch+1,newsigners).params[0].data;
 
-        await multisig.partialExecuteOff(epoch,txid,data,sign(epoch,txid,data,poa1))
-        await multisig.partialExecuteOff(epoch,txid,data,sign(epoch,txid,data,poa2))
+        await multisig.partialExecuteOff(txid,data,sign(epoch,txid,data,poa1))
+        await multisig.partialExecuteOff(txid,data,sign(epoch,txid,data,poa2))
 
         assert(await multisig.isSigner(poa4));
         assert((await multisig.getEpochs())-1==epoch+1);
@@ -80,18 +80,18 @@ contract("OfflineMultisig", (accounts) => {
 
         let data = multisig._changeSigners.request(epoch+1,newsigners).params[0].data;
 
-        await multisig.partialExecuteOff(epoch,txid,data,sign(epoch,txid,data,poa1))
-        await multisig.partialExecuteOff(epoch,txid,data,sign(epoch,txid,data,poa2))
+        await multisig.partialExecuteOff(txid,data,sign(epoch,txid,data,poa1))
+        await multisig.partialExecuteOff(txid,data,sign(epoch,txid,data,poa2))
 
         assert(await multisig.isSigner(poa4));
         assert((await multisig.getEpochs())-1==epoch+1);
 
-        let [csdata, cssigs] = await multisig.getSignatures(epoch,txid)
+        let [csepoch, csdata, cssigs] = await multisig.getSignatures(txid)
 
         let multisig2 = await OfflineMultisig.new([poa1,poa2,poa3].sort());
-        await multisig2.fullExecuteOff(epoch,txid,csdata,cssigs)
+        await multisig2.fullExecuteOff(csepoch,txid,csdata,cssigs)
         assert(await multisig2.isSigner(poa4));
-        
+
     });
 
 });
