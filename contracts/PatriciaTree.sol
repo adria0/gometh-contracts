@@ -90,7 +90,34 @@ library Utils {
     }
 }
 
-contract PatriciaTree {
+contract PatriciaTreeVerifier {
+
+    function edgeHash(D.Edge e) pure internal returns (bytes32) {
+        return keccak256(e.node, e.label.length, e.label.data);
+    }
+
+    function verifyProof(bytes32 rootHash, bytes key, bytes value, uint branchMask, bytes32[] siblings) public pure {
+        D.Label memory k = D.Label(keccak256(key), 256);
+        D.Edge memory e;
+        e.node = keccak256(value);
+        for (uint i = 0; branchMask != 0; i++) {
+            uint bitSet = Utils.lowestBitSet(branchMask);
+            branchMask &= ~(uint(1) << bitSet);
+            (k, e.label) = Utils.splitAt(k, 255 - bitSet);
+            uint bit;
+            (bit, e.label) = Utils.chopFirstBit(e.label);
+            bytes32[2] memory edgeHashes;
+            edgeHashes[bit] = edgeHash(e);
+            edgeHashes[1 - bit] = siblings[siblings.length - i - 1];
+            e.node = keccak256(edgeHashes);
+        }
+        e.label = k;
+        require(rootHash == edgeHash(e));
+    }
+
+}
+
+contract PatriciaTree is PatriciaTreeVerifier {
 
  	address owner;
 
@@ -119,9 +146,6 @@ contract PatriciaTree {
         return (rootEdge.label.length, rootEdge.label.data, rootEdge.node);
     }
     
-    function edgeHash(D.Edge e) pure internal returns (bytes32) {
-        return keccak256(e.node, e.label.length, e.label.data);
-    }
     
     // Returns the hash of the encoding of a node.
     function hash(D.Node memory n) pure internal returns (bytes32) {
@@ -162,24 +186,6 @@ contract PatriciaTree {
         }
     }
 
-    function verifyProof(bytes32 rootHash, bytes key, bytes value, uint branchMask, bytes32[] siblings) public pure {
-        D.Label memory k = D.Label(keccak256(key), 256);
-        D.Edge memory e;
-        e.node = keccak256(value);
-        for (uint i = 0; branchMask != 0; i++) {
-            uint bitSet = Utils.lowestBitSet(branchMask);
-            branchMask &= ~(uint(1) << bitSet);
-            (k, e.label) = Utils.splitAt(k, 255 - bitSet);
-            uint bit;
-            (bit, e.label) = Utils.chopFirstBit(e.label);
-            bytes32[2] memory edgeHashes;
-            edgeHashes[bit] = edgeHash(e);
-            edgeHashes[1 - bit] = siblings[siblings.length - i - 1];
-            e.node = keccak256(edgeHashes);
-        }
-        e.label = k;
-        require(rootHash == edgeHash(e));
-    }
     
     // TODO also return the proof
     function insert(bytes key, bytes value) public  {
