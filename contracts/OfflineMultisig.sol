@@ -208,9 +208,9 @@ contract OfflineMultisig {
 
     /* ---- multisig functions --------------------------------------- */
 
-    event LogSignersChanged(uint epoch, address[] signers);
+    event LogChangeSignersMultisigned(uint epoch, address[] signers);
     
-    function _changeSigners(uint _epoch, address[] _signers) public {
+    function _changesignersmultisigned(uint _epoch, address[] _signers) public {
         
         require (msg.sender == address(this));
         
@@ -223,7 +223,7 @@ contract OfflineMultisig {
               epochs[epoch][i] = _signers[i];
           }
 
-        LogSignersChanged(_epoch,_signers);
+        LogChangeSignersMultisigned(_epoch,_signers);
     } 
     
 }

@@ -45,7 +45,7 @@ contract("OfflineMultisig", (accounts) => {
         let txid = web3.sha3("txid")
         let epoch = (await multisig.getEpochs())-1
 
-        let data = multisig._changeSigners.request(epoch+1,newsigners).params[0].data;
+        let data = multisig._changesignersmultisigned.request(epoch+1,newsigners).params[0].data;
 
         await multisig.partialExecuteOff(txid,data,sign(epoch,txid,data,poa1))
         await multisig.partialExecuteOff(txid,data,sign(epoch,txid,data,poa2))
@@ -61,7 +61,7 @@ contract("OfflineMultisig", (accounts) => {
 
         let txid = web3.sha3("txid")
         let epoch = (await multisig.getEpochs())-1
-        let data = multisig._changeSigners.request(epoch+1,newsigners).params[0].data;
+        let data = multisig._changesignersmultisigned.request(epoch+1,newsigners).params[0].data;
 
         let sigs = sign(epoch,txid,data,poa1).concat(sign(epoch,txid,data,poa2))
         await multisig.fullExecuteOff(epoch,txid,data,sigs)
@@ -78,7 +78,7 @@ contract("OfflineMultisig", (accounts) => {
         let txid = web3.sha3("txid")
         let epoch = (await multisig.getEpochs())-1
 
-        let data = multisig._changeSigners.request(epoch+1,newsigners).params[0].data;
+        let data = multisig._changesignersmultisigned.request(epoch+1,newsigners).params[0].data;
 
         await multisig.partialExecuteOff(txid,data,sign(epoch,txid,data,poa1))
         await multisig.partialExecuteOff(txid,data,sign(epoch,txid,data,poa2))
