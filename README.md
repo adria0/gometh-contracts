@@ -18,9 +18,9 @@ got a lot of inspiration of https://github.com/paritytech/parity-bridge
 
 ![](./res/schema.png)
 
-## disclaimer
+## Disclaimer
 
-TOY PROJECT, DO NOT USE IN PRODUCTION
+TOY PROJECT, FOR FUN & LEARN. DO NOT USE IN PRODUCTION.
 
 ## Tasks
 
