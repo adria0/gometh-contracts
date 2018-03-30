@@ -38,9 +38,9 @@ TOY PROJECT, DO NOT USE IN PRODUCTION
  - [ ] Validators stakes some amount, if global settlement is done, stake is burnt
  
 
-## more detailed info
+## More detailed info
 
-### mainchain -> sidechain 
+### Mainchain -> sidechain 
 
 When sending ethers from main to side chain
 
@@ -54,7 +54,7 @@ When sending ethers from main to side chain
 ![](./res/main-to-side.png)
 
 
-### sidechain -> mainchain 
+### Sidechain -> mainchain 
 
 To bring back the ethers to the mainchainchain
 
@@ -68,7 +68,7 @@ To bring back the ethers to the mainchainchain
 
 ![](./res/side-to-main.png)  
   
-### changing the set of sidechain signers
+### Changing the set of sidechain signers
 
 Allows sidechain signers to be added/removed, since sidechain acts as a multisig. All signer changes in the sidechain, could be applied in the mainchain in one only transaction
 
@@ -79,7 +79,7 @@ Allows sidechain signers to be added/removed, since sidechain acts as a multisig
 
 ![](./res/sync-signers.png)
 
-### global settlement
+### Global settlement
 
 In order to provide a way to solve the problem when validators stops working:
 
